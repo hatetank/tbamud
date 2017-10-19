@@ -23,6 +23,7 @@ bin/*
 **/world
 
 # log files, status files
+**/log
 *.log
 .fastboot
 .killscript
