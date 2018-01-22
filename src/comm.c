@@ -8,8 +8,6 @@
 *  CircleMUD is based on DikuMUD, Copyright (C) 1990, 1991.               *
 **************************************************************************/
 
-#define __COMM_C__
-
 #include "conf.h"
 #include "sysdep.h"
 
@@ -164,7 +162,7 @@ static sigfunc *my_signal(int signo, sigfunc *func);
 #endif
 /* Webster Dictionary Lookup functions */
 static RETSIGTYPE websterlink(int sig);
-static void handle_webster_file();
+static void handle_webster_file(void);
 
 static void msdp_update(void); /* KaVir plugin*/
 
@@ -1572,15 +1570,15 @@ static int process_output(struct descriptor_data *t)
 
   /* add the extra CRLF if the person isn't in compact mode */
   if (STATE(t) == CON_PLAYING && t->character && !IS_NPC(t->character) && !PRF_FLAGGED(t->character, PRF_COMPACT))
-    if ( !t->pProtocol->WriteOOB )
-        strcat(osb, "\r\n");	/* strcpy: OK (osb:MAX_SOCK_BUF-2 reserves space) */
+    if ( !t->pProtocol->WriteOOB ) 
+      strcat(osb, "\r\n");	/* strcpy: OK (osb:MAX_SOCK_BUF-2 reserves space) */
 
   if (!t->pProtocol->WriteOOB) /* add a prompt */
     strcat(i, make_prompt(t));	/* strcpy: OK (i:MAX_SOCK_BUF reserves space) */
 
   /* now, send the output.  If this is an 'interruption', use the prepended
    * CRLF, otherwise send the straight output sans CRLF. */
-  if (t->has_prompt && !t->pProtocol->WriteOOB) { 
+  if (t->has_prompt && !t->pProtocol->WriteOOB) {
     t->has_prompt = FALSE;
     result = write_to_descriptor(t->descriptor, i);
     if (result >= 2)
@@ -1845,18 +1843,13 @@ static int process_input(struct descriptor_data *t)
 
     /* Read # of "bytes_read" from socket, and if we have something, mark the sizeof data
      * in the read_buf array as NULL */
-    
-    bytes_read = perform_socket_read(t->descriptor, read_buf, MAX_PROTOCOL_BUFFER);
-    
-    /* Since we have recieved at least 0 byte of data from the socket, lets run it through
-     * ProtocolInput() and rip out anything that is Out Of Band */ 
-    
-    if ( bytes_read >= 0 )
-    {
+    if ((bytes_read = perform_socket_read(t->descriptor, read_buf, space_left)) > 0)
       read_buf[bytes_read] = '\0';
-      ProtocolInput( t, read_buf, bytes_read, read_point );
-      bytes_read = strlen(read_point);
-    }
+
+    /* Since we have recieved atleast 1 byte of data from the socket, lets run it through
+     * ProtocolInput() and rip out anything that is Out Of Band */ 
+    if ( bytes_read > 0 )
+      bytes_read = ProtocolInput( t, read_buf, bytes_read, t->inbuf );
 
     if (bytes_read < 0)	/* Error, disconnect them. */
       return (-1);
@@ -2483,7 +2476,7 @@ void send_to_range(room_vnum start, room_vnum finish, const char *messg, ...)
   }
 }
 
-const char *ACTNULL = "<NULL>";
+static const char *ACTNULL = "<NULL>";
 #define CHECK_NULL(pointer, expression) \
   if ((pointer) == NULL) i = ACTNULL; else i = (expression);
 /* higher-level communication: the act() function */

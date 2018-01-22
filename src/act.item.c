@@ -175,12 +175,12 @@ if (!IS_NPC(ch) && !PRF_FLAGGED(ch, PRF_NOHASSLE)) {
     return (0);
   }
 }
-  
+
   if (OBJ_SAT_IN_BY(obj)){
     act("It appears someone is sitting on $p..", FALSE, ch, obj, 0, TO_CHAR);
     return (0);
   }
-  
+
   return (1);
 }
 
@@ -676,7 +676,7 @@ static void perform_give_gold(struct char_data *ch, struct char_data *vict,
 
   if (IS_NPC(ch) || (GET_LEVEL(ch) < LVL_GOD))
     decrease_gold(ch, amount);
-    
+
   increase_gold(vict, amount);
   bribe_mtrigger(vict, ch, amount);
 }
@@ -839,6 +839,7 @@ ACMD(do_drink)
     return;
 
   if (!*arg) {
+    /** If you didn't specify your drink, but you're submerged in water... */
     char buf[MAX_STRING_LENGTH];
     switch (SECT(IN_ROOM(ch))) {
       case SECT_WATER_SWIM:
@@ -885,7 +886,7 @@ ACMD(do_drink)
     send_to_char(ch, "Your stomach can't contain anymore!\r\n");
     return;
   }
-  if ((GET_OBJ_VAL(temp, 1) == 0) || (GET_OBJ_VAL(temp, 0) != 1)) {
+  if (GET_OBJ_VAL(temp, 1) < 1) {
     send_to_char(ch, "It is empty.\r\n");
     return;
   }
@@ -1086,6 +1087,7 @@ ACMD(do_pour)
       return;
     }
     if (!str_cmp(arg2, "out")) {
+      /* for ITEM_DRINKCON + ITEM_FOUNTAIN, index 0 in obj values == drinks left, -1 indicates always full */
       if (GET_OBJ_VAL(from_obj, 0) > 0) {
         act("$n empties $p.", TRUE, ch, from_obj, 0, TO_ROOM);
         act("You empty $p.", FALSE, ch, from_obj, 0, TO_CHAR);
@@ -1529,7 +1531,7 @@ ACMD(do_sac)
     send_to_char(ch, "Sacrifice what?\n\r");
     return;
   }
-    
+
   if (!(j = get_obj_in_list_vis(ch, arg, NULL, world[IN_ROOM(ch)].contents)) && (!(j = get_obj_in_list_vis(ch, arg, NULL, ch->carrying)))) {
     send_to_char(ch, "It doesn't seem to be here.\n\r");
     return;
