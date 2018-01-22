@@ -40,3 +40,6 @@ src/util/depend
 
 # project files
 **/.idea
+
+# static analysis reports directory
+**/build
